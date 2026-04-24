@@ -1,0 +1,41 @@
+{
+  "note": "Example only. Keep your real opencode config outside this repository.",
+  "providers": {
+    "thinking-local": {
+      "type": "openai",
+      "baseURL": "http://localhost:8000/v1",
+      "apiKey": "not-needed-local"
+    },
+    "coding-local": {
+      "type": "openai",
+      "baseURL": "http://localhost:8001/v1",
+      "apiKey": "not-needed-local"
+    },
+    "research-local": {
+      "type": "openai",
+      "baseURL": "http://localhost:8002/v1",
+      "apiKey": "not-needed-local"
+    }
+  },
+  "agents": {
+    "thinking": {
+      "provider": "thinking-local",
+      "model": "thinking-alias",
+      "temperature": 0.4,
+      "maxTokens": 4096,
+      "fallback": "research"
+    },
+    "coding": {
+      "provider": "coding-local",
+      "model": "coding-alias",
+      "temperature": 0.1,
+      "maxTokens": 4096
+    },
+    "research": {
+      "provider": "research-local",
+      "model": "research-alias",
+      "temperature": 0.3,
+      "maxTokens": 4096
+    }
+  }
+}
