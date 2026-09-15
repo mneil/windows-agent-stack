@@ -4,11 +4,11 @@
 
 This is the active lineup for this repo:
 
-- Thinking: Gemma 4 21B REAP Q6_K
+- Thinking: Qwen3.8-27B Q8_0 (hybrid linear/full attention, vision-capable, 262K native context)
 - Coding: Qwen3.6-35B-A3B Q8_0
 - Research: Qwen3.6-35B-A3B Q8_0
 
-This keeps coding and research on Qwen while using Gemma 4 for thinking.
+Thinking moved from Gemma 4 21B to Qwen3.8-27B for stronger reasoning, agentic, and vision performance while keeping coding/research on Qwen 3.6. Gemma 4 21B REAP Q6_K remains available via `launch-gemma4.cmd` as a fallback/faster option.
 
 ## Additional Models Available
 
@@ -59,52 +59,49 @@ You also have embedding and reranking models available in safetensors format. Th
 
 ## Thinking
 
-### Primary Options
+### Primary
 
-Option A: Faster (current baseline)
-- gemma-4-21b-a4b-it-REAP-Q6_K.gguf
-- Model Location: C:\Models\gemma-4-21b-a4b-it-REAP\gemma-4-21b-a4b-it-REAP-Q6_K.gguf
-- Benefit: 21B is smaller, lower latency for planning tasks
+- Qwen3.8-27B-Q8_0.gguf (+ mmproj-Qwen3.8-27B-BF16.gguf for vision)
 
-Option B: Higher quality
-- gemma-4-E4B-it-OBLITERATED-Q8_0.gguf
-- gemma-4-E4B-it-OBLITERATED-mmproj-f16.gguf
-- Model Location: C:\Models\gemma-4-E4B-it-OBLITERATED\
-- Benefit: Larger model, stronger reasoning if latency is acceptable
+### Model Location
+
+- C:\Models\lmstudio-community\Qwen3.8-27B-GGUF\Qwen3.8-27B-Q8_0.gguf
+- C:\Models\lmstudio-community\Qwen3.8-27B-GGUF\mmproj-Qwen3.8-27B-BF16.gguf
 
 ### Why
 
-- Gemma 4 gives strong reasoning and context handling for plan-first workflows
-- Both variants are proven in your environment
-- Start with 21B for faster planning, upgrade to E4B if quality is insufficient
+- Hybrid architecture (16x [3x Gated DeltaNet+FFN -> 1x Gated Attention+FFN]) keeps KV-cache cost low, so 128GB unified memory can run the full native 262,144 token context at Q8_0 with room to spare
+- Vision-language support (image/video) via the bundled mmproj, useful for research and general queries
+- Recommended sampling for thinking mode: `temp=1.0`, `top_p=0.95`, `top_k=20`, `min_p=0.0`, `presence_penalty=0.0`, `repetition_penalty=1.0` (baked into `launch-thinking.cmd` as server defaults)
+- `reasoning_effort=xhigh` and `preserve_thinking=true` are set via `--chat-template-kwargs` to match Opus-like deep reasoning by default; drop to `medium`/`low` in that flag if latency matters more than depth
+- `--parallel 1` dedicates the full context window to a single conversation instead of splitting it across slots
+
+### Fallback Options
+
+- gemma-4-21b-a4b-it-REAP-Q6_K.gguf via `launch-gemma4.cmd` - smaller/faster if you need to free memory or want lower latency planning
+- gemma-4-E4B-it-OBLITERATED-Q8_0.gguf - larger Gemma 4 variant, kept as a quality fallback
 
 ## Recommended Adoption Order
 
-1. Thinking: run Gemma 4 21B on port 8000.
+1. Thinking: run Qwen3.8-27B on port 8000.
 2. Coding: run Qwen 3.6 on port 8001.
 3. Research: run Qwen 3.6 on port 8002.
-4. Keep aliases stable in server launchers (`gemma-4`, `qwen3.6-coding`, `qwen3.6-research`).
+4. Keep aliases stable in server launchers (`thinking`, `qwen3.6-coding`, `qwen3.6-research`).
 5. Ensure orchestrator model names exactly match exposed server model names.
 
 ## Suggested Profiles
 
-### Balanced (Recommended)
+### Balanced (Recommended, current default)
 
 - Research: Qwen3.6-35B-A3B-Q8_0
 - Coding: Qwen3.6-35B-A3B-Q8_0
-- Thinking: Gemma 4 21B Q6_K (faster planning, current default)
-
-### Quality First
-
-- Research: Qwen3.6-35B-A3B-Q8_0
-- Coding: Qwen3.6-35B-A3B-Q8_0
-- Thinking: Gemma 4 E4B Q8_0 (slower but higher quality)
+- Thinking: Qwen3.8-27B Q8_0 (strong reasoning/agentic/vision, full 262K context)
 
 ### Throughput First
 
 - Research: Qwen3.6-35B-A3B-Q8_0
 - Coding: Qwen3.6-35B-A3B-Q8_0
-- Thinking: Gemma 4 21B Q6_K (fastest option)
+- Thinking: Gemma 4 21B Q6_K via `launch-gemma4.cmd` (fastest, lower quality)
 
 ## Model Selection Criteria
 
@@ -119,7 +116,7 @@ Choose the first-pass lineup based on:
 
 Current launch scripts expose these aliases:
 
-- Thinking: `gemma-4`
+- Thinking: `thinking` (Qwen3.8-27B; `gemma-4` alias still available via `launch-gemma4.cmd`)
 - Coding: `qwen3.6-coding`
 - Research: `qwen3.6-research`
 

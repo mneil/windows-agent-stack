@@ -20,8 +20,7 @@ Then run .\servers\launch-all-servers.ps1 again.
 
 $targets = @(
     @{ Name = 'Thinking'; Script = 'launch-thinking.cmd' },
-    @{ Name = 'Coding'; Script = 'launch-coding.cmd' },
-    @{ Name = 'Research'; Script = 'launch-research.cmd' }
+    @{ Name = 'QwenShared'; Script = 'launch-coding.cmd' }
 )
 
 foreach ($target in $targets) {
@@ -37,4 +36,5 @@ foreach ($target in $targets) {
     ) | Out-Null
 }
 
-Write-Host 'Launched thinking, coding, and research server windows.'
+Write-Host 'Launched thinking and shared Qwen server windows.'
+Write-Host 'Research should point to the shared Qwen endpoint on http://127.0.0.1:8001/v1.'

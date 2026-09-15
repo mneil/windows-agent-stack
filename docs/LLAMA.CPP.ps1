@@ -48,6 +48,7 @@ if (-not (Test-Path $windowsSdkRcDir)) {
 Write-Host "Using HomePath: $HomePath"
 Write-Host "Using llama.cpp root: $llamaCppRoot"
 Write-Host "Using HIP path: $HipPath"
+Write-Host "Using GPU target: $GpuTarget"
 
 $env:OPENSSL_ROOT_DIR = $opensslRoot
 $env:HIP_PATH = $HipPath
@@ -63,7 +64,7 @@ Push-Location $buildDir
 try {
     cmake -S .. -G Ninja `
       -DGGML_HIP=ON `
-      -DGPU_TARGETS=$GpuTarget `
+      "-DGPU_TARGETS=$GpuTarget" `
       -DCMAKE_C_COMPILER="$clangExe" `
       -DCMAKE_CXX_COMPILER="$clangxxExe" `
       -DCMAKE_BUILD_TYPE=Release `
@@ -71,7 +72,15 @@ try {
       -DCMAKE_SHARED_LINKER_FLAGS="-L $HipPath\lib" `
       -DCMAKE_PREFIX_PATH="$HipPath"
 
+    if ($LASTEXITCODE -ne 0) {
+        throw "CMake configure failed with exit code $LASTEXITCODE"
+    }
+
     cmake --build . -j $Jobs
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "CMake build failed with exit code $LASTEXITCODE"
+    }
 
     if (-not (Test-Path $llamaServerExe)) {
         throw "Build completed but llama-server.exe was not found at: $llamaServerExe"
