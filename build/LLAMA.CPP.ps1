@@ -52,6 +52,7 @@ Write-Host "Using GPU target: $GpuTarget"
 
 $env:OPENSSL_ROOT_DIR = $opensslRoot
 $env:HIP_PATH = $HipPath
+$env:HIPCXX = $clangxxExe
 $env:PATH = "$clangBinDir;$windowsSdkRcDir;$env:PATH"
 
 if (Test-Path $buildDir) {
@@ -59,12 +60,21 @@ if (Test-Path $buildDir) {
 }
 
 New-Item -ItemType Directory -Path $buildDir | Out-Null
-
+# -DGGML_HIP_ROCWMMA_FATTN=ON `
 Push-Location $buildDir
 try {
+    # cmake -S .. -B . `
+    #     -G Ninja `
+    #     "-DGPU_TARGETS=$GpuTarget" `
+    #     -DGGML_HIP=ON `
+    #     -DCMAKE_C_COMPILER="$clangExe" `
+    #     -DCMAKE_CXX_COMPILER="$clangxxExe" `
+    #     -DCMAKE_BUILD_TYPE=Release
+
     cmake -S .. -G Ninja `
       -DGGML_HIP=ON `
       "-DGPU_TARGETS=$GpuTarget" `
+      -DGGML_HIP_ROCWMMA_FATTN=ON `
       -DCMAKE_C_COMPILER="$clangExe" `
       -DCMAKE_CXX_COMPILER="$clangxxExe" `
       -DCMAKE_BUILD_TYPE=Release `
@@ -76,7 +86,8 @@ try {
         throw "CMake configure failed with exit code $LASTEXITCODE"
     }
 
-    cmake --build . -j $Jobs
+    cmake --build . --config Release -- -j $Jobs
+    # cmake --build . -j $Jobs
 
     if ($LASTEXITCODE -ne 0) {
         throw "CMake build failed with exit code $LASTEXITCODE"
